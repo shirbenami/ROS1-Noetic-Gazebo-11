@@ -1,3 +1,80 @@
+# 🐢 ROS1 Noetic + Gazebo 11 + TurtleBot3 Simulation
+
+This repository provides a full Docker-based simulation environment with:
+
+- ✅ ROS1 Noetic
+- ✅ Gazebo 11 with GUI support
+- ✅ `gazebo_ros_pkgs` integration
+- ✅ TurtleBot3 simulation + teleoperation
+
+---
+
+## 🚀 Quick Start
+
+### 🐳 1. Clone this repository
+
+```bash
+git clone [https://github.com/<your-username>/<your-repo-name>](https://github.com/shirbenami/ROS1-Noetic-Gazebo-11).git
+cd <your-repo-name>
+```
+
+### 🛠️ 2. Build the Docker Image
+```bash
+docker build -t ros1-gazebo .
+```
+
+### 🖥️ 3. Enable X11 GUI for Gazebo (on Ubuntu only)
+```bash
+xhost +local:docker
+```
+
+### ▶️ 4. Run the Docker Container
+```bash
+docker run -it \
+  --name ros1-gazebo-container \
+  --env="DISPLAY=$DISPLAY" \
+  --env="QT_X11_NO_MITSHM=1" \
+  --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+  --privileged \
+  ros1-gazebo
+```
+
+### 🤖 5. Inside the Container: Setup TurtleBot3
+```bash
+chmod +x setup_turtlebot3.sh
+./setup_turtlebot3.sh
+```
+
+This will:
+
+* Clone TurtleBot3 + Simulations
+
+* Install dependencies
+
+* Compile workspace
+
+* Launch turtlebot3_world.launch in Gazebo
+
+### 🎮 6. Control the Robot (Teleoperation)
+In another terminal:
+
+```bash
+docker exec -it ros1-gazebo-container bash
+source ~/.bashrc
+rosrun teleop_twist_keyboard teleop_twist_keyboard.py
+```
+
+Use keys i, j, l, , to move the robot.
+
+
+
+
+
+
+
+
+
+
 # 🐳 ROS1 Noetic + Gazebo 11 Docker Setup Guide
 
 This guide walks you through creating a Docker-based development environment with:
