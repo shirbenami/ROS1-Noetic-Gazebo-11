@@ -183,8 +183,8 @@ rosdep update
 rosdep install --from-paths src --ignore-src -r -y
 
 echo "🧠 Setting TurtleBot3 model to 'burger'"
-echo "export TURTLEBOT3_MODEL=burger" >> ~/.bashrc
-export TURTLEBOT3_MODEL=burger
+echo "export TURTLEBOT3_MODEL=waffle" >> ~/.bashrc
+export TURTLEBOT3_MODEL=waffle
 
 echo "📦 Final compilation"
 source /opt/ros/noetic/setup.bash
