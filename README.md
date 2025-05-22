@@ -42,6 +42,7 @@ RUN echo "source /opt/ros/noetic/setup.bash" >> /root/.bashrc && \
 
 # Enable GUI support
 ENV DISPLAY=:0
+```
 
 ## 🧱 Step 2: Build the Docker Image
 
@@ -49,12 +50,14 @@ From the project directory, build the Docker image:
 
 ```bash
 docker build -t ros1-gazebo .
+```
 
-## Step 3: Run the Container with GUI Support
+## 🖥️ Step 3: Run the Container with GUI Support
 If you're running on a local Ubuntu machine:
 
 ```bash
 xhost +local:docker
+```
 
 Then run the container:
 ```bash
@@ -65,3 +68,58 @@ docker run -it \
   --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
   --privileged \
   ros1-gazebo
+```
+
+## 🧪 Step 4: Test the Setup
+Inside the container:
+```bash
+roslaunch gazebo_ros empty_world.launch
+```
+
+## 🤖 Step 5: Add TurtleBot3 Simulation
+To automatically install and run the TurtleBot3 simulation, use the following script.
+
+🧾 File: setup_turtlebot3.sh
+Inside the container, create the script:
+
+```bash
+nano setup_turtlebot3.sh
+Paste the following content:
+```
+```bash
+#!/bin/bash
+
+echo "📦 Creating catkin_ws"
+mkdir -p ~/catkin_ws/src
+cd ~/catkin_ws/src
+
+echo "🌐 Cloning TurtleBot3 packages from GitHub"
+git clone -b noetic-devel https://github.com/ROBOTIS-GIT/turtlebot3.git
+git clone -b noetic-devel https://github.com/ROBOTIS-GIT/turtlebot3_simulations.git
+
+echo "🔧 Running catkin_make"
+cd ~/catkin_ws
+catkin_make
+
+echo "📥 Installing dependencies with rosdep"
+rosdep update
+rosdep install --from-paths src --ignore-src -r -y
+
+echo "🧠 Setting TurtleBot3 model to 'burger'"
+echo "export TURTLEBOT3_MODEL=burger" >> ~/.bashrc
+export TURTLEBOT3_MODEL=burger
+
+echo "📦 Final compilation"
+source /opt/ros/noetic/setup.bash
+catkin_make
+source devel/setup.bash
+
+echo "🚀 Launching TurtleBot3 simulation"
+roslaunch turtlebot3_gazebo turtlebot3_world.launch
+```
+
+Make it executable and run:
+```bash
+chmod +x setup_turtlebot3.sh
+./setup_turtlebot3.sh
+```
