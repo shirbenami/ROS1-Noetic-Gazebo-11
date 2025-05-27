@@ -63,7 +63,11 @@ docker exec -it ros1-gazebo-container bash
 source ~/.bashrc
 rosrun teleop_twist_keyboard teleop_twist_keyboard.py
 ```
-
+if it isnt download
+```bash
+apt update
+apt install ros-noetic-teleop-twist-keyboard
+```
 Use keys i, j, l, , to move the robot.
 
 
