@@ -29,6 +29,21 @@ xhost +local:docker
 ```
 
 ### ▶️ 4. Run the Docker Container
+
+```bash
+docker run -it \
+  --name ros1-melodic-gazebo-container-new2 \
+  --net=host \
+  --env="DISPLAY=$DISPLAY" \
+  --env="QT_X11_NO_MITSHM=1" \
+  --env="ROS_MASTER_URI=http://localhost:11311" \
+  --env="ROS_IP=127.0.0.1" \
+  --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+  --privileged \
+  ros1-melodic-gazebo-container-new2 \
+  /bin/bash -c "roscore & sleep 2 && bash"
+```
+
 ```bash
 docker run -it \
   --name ros1-melodic-gazebo-container \
