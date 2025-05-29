@@ -69,7 +69,7 @@ CMD ["bash"]
 ```
 
 ```
-docker build -t ros1-px4-gazebo .
+docker build -t ros1-px4-gazebo -f Dockerfile.ros1-px4-gazebo .
 ```
 
 ```
