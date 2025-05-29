@@ -1,6 +1,9 @@
 
+```
 nano Dockerfile
+```
 
+```
 # PX4 + ROS1 + Gazebo Dockerfile (Melodic, PX4 SITL, Iris Drone)
 
 FROM ros:melodic
@@ -58,12 +61,16 @@ RUN bash ./Tools/setup/ubuntu.sh || true
 ENV DISPLAY=:0
 
 CMD ["/bin/bash"]
+```
 
-
+```
 docker build -t px4-ros1-gazebo .
+```
 
+```
 xhost +local:docker
-
+```
+```
 docker run -it \
   --name px4-container \
   --net=host \
@@ -72,8 +79,9 @@ docker run -it \
   --env="QT_X11_NO_MITSHM=1" \
   --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
   px4-ros1-gazebo
-
+```
+```
 cd ~/catkin_ws/PX4-Autopilot
 make px4_sitl_default gazebo
-
+```
 
