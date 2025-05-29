@@ -4,72 +4,78 @@ nano Dockerfile
 ```
 
 ```
-# PX4 + ROS1 + Gazebo Dockerfile (Melodic, PX4 SITL, Iris Drone)
+FROM ubuntu:18.04
 
-FROM ros:melodic
-
+# Avoid interactive dialogs
 ENV DEBIAN_FRONTEND=noninteractive
 
-# System Dependencies
-RUN apt update && apt install -y \
-    git wget nano curl lsb-release gnupg2 \
-    python3-pip python3-dev \
-    build-essential \
-    cmake ninja-build \
-    libxml2-dev libxslt-dev \
-    libgazebo9-dev libeigen3-dev libopencv-dev \
-    protobuf-compiler \
-    libprotobuf-dev libprotoc-dev \
-    libcurl4-openssl-dev libzmq3-dev \
-    libboost-all-dev \
-    python-rosdep python-catkin-tools \
-    ros-melodic-desktop-full \
-    ros-melodic-gazebo-ros-pkgs \
-    ros-melodic-gazebo-ros-control \
-    && rm -rf /var/lib/apt/lists/*
+# Locale & tz
+RUN apt-get update && apt-get install -y \
+    locales tzdata && \
+    locale-gen en_US.UTF-8
 
-# Python Dependencies for PX4
-RUN pip3 install --upgrade pip && \
-    pip3 install \
-    cython \
-    empy==3.3.4 \
-    kconfiglib \
-    toml jinja2 \
-    numpy \
-    pyserial \
-    pyyaml==5.4.1 \
-    future \
-    pandas \
-    lxml
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8
 
-# ROS setup
-RUN mkdir -p /root/catkin_ws/src
+# Base dependencies
+RUN apt-get update && apt-get install -y \
+    sudo curl wget git gnupg2 lsb-release \
+    build-essential cmake ninja-build \
+    python3-pip python3-yaml python3-jinja2 \
+    python3-empy python3-dev python3-setuptools \
+    python-is-python3 python3-future \
+    libxml2-utils
+
+# ROS1 Melodic installation
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' && \
+    curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add - && \
+    apt-get update && apt-get install -y \
+    ros-melodic-desktop-full ros-melodic-mavros ros-melodic-mavros-extras \
+    ros-melodic-tf2-sensor-msgs ros-melodic-geographic-msgs \
+    ros-melodic-octomap* \
+    geographiclib-tools && \
+    rosdep init && rosdep update && \
+    geographiclib-get-geoids egm96-5
+
+# Gazebo Classic 9
+RUN apt-get install -y \
+    gazebo9 libgazebo9-dev \
+    libgazebo9-plugins-dev \
+    libgazebo9-msgs-dev \
+    libgazebo9-transport-dev \
+    libeigen3-dev libopencv-dev
+
+# PX4 Autopilot
 WORKDIR /root/catkin_ws
-RUN bash -c 'source /opt/ros/melodic/setup.bash && catkin_make'
+RUN git clone https://github.com/PX4/PX4-Autopilot.git && \
+    cd PX4-Autopilot && \
+    git submodule update --init --recursive
+
+# Environment setup
 RUN echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc && \
-    echo "source /root/catkin_ws/devel/setup.bash" >> ~/.bashrc
+    echo "source /root/catkin_ws/PX4-Autopilot/Tools/setup_gazebo.bash /root/catkin_ws/PX4-Autopilot /root/catkin_ws/PX4-Autopilot/build/px4_sitl_default" >> ~/.bashrc && \
+    echo "export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/root/catkin_ws/PX4-Autopilot" >> ~/.bashrc && \
+    echo "export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/root/catkin_ws/PX4-Autopilot/Tools/sitl_gazebo" >> ~/.bashrc
 
-# PX4 Source
-WORKDIR /root/catkin_ws
-RUN git clone https://github.com/PX4/PX4-Autopilot.git --recursive
+# Build PX4 + SITL for Gazebo
 WORKDIR /root/catkin_ws/PX4-Autopilot
-RUN bash ./Tools/setup/ubuntu.sh || true
+RUN pip3 install --upgrade pip && \
+    pip3 install pyyaml
+RUN make px4_sitl_default gazebo
 
-# Optional: Prebuild PX4
-# RUN make px4_sitl_default gazebo
+CMD ["bash"]
 
-ENV DISPLAY=:0
-
-CMD ["/bin/bash"]
 ```
 
 ```
-docker build -t px4-ros1-gazebo .
+docker build -t ros1-px4-gazebo .
 ```
 
 ```
 xhost +local:docker
 ```
+
 ```
 docker run -it \
   --name px4-container \
@@ -78,10 +84,7 @@ docker run -it \
   --env="DISPLAY=$DISPLAY" \
   --env="QT_X11_NO_MITSHM=1" \
   --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-  px4-ros1-gazebo
+  ros1-px4-gazebo
 ```
-```
-cd ~/catkin_ws/PX4-Autopilot
-make px4_sitl_default gazebo
-```
+
 
