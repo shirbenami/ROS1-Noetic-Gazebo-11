@@ -19,61 +19,103 @@ source devel/setup.bash
 
 ---
 
-## 🏗️ Step-by-Step Instructions
+# 🕹️ Hector Quadrotor Keyboard Control Setup with Bridge
 
-### 1. Launch the Hector Quadrotor Indoor Simulation
+This guide explains how to control the Hector Quadrotor in Gazebo using your **keyboard**. It sets up a **ROS bridge node** to convert `cmd_vel` messages into position control commands, and connects that to the quadrotor simulation.
+
+---
+
+## ✅ Prerequisites
+
+Make sure you have the following:
+
+* ROS (tested on Melodic)
+* `hector_quadrotor` packages installed
+* `teleop_twist_keyboard` installed
+* `keyboard_teleop_bridge` custom bridge (see below)
+
+---
+
+## 📁 Folder Structure
+
+```
+~/catkin_ws/src/
+├── hector_quadrotor/...
+├── keyboard_teleop_bridge/
+│   └── scripts/
+│       └── cmdvel_bridge.py
+```
+
+---
+
+## 1️⃣ Run the Hector Quadrotor Simulation
 
 ```bash
 roslaunch hector_quadrotor_demo indoor_slam_gazebo.launch
 ```
 
-> 📝 This will load the drone in a Gazebo indoor environment.
+Wait until Gazebo is fully loaded.
 
 ---
 
-### 2. Create a Keyboard Teleoperation Launch File
+## 2️⃣ Create the Keyboard Bridge Script
 
-Create a file at:
-
-```bash
-cd ~/catkin_ws/src/hector_quadrotor/hector_quadrotor_teleop/launch
-nano keyboard_teleop_quadrotor.launch
-```
-
-Paste the following content:
-
-```xml
-<launch>
-  <arg name="control_mode" default="velocity" />
-
-  <node name="keyboard_joy" pkg="teleop_tools" type="key_teleop" output="screen">
-    <param name="scale_linear" value="1.0" />
-    <param name="scale_angular" value="1.0" />
-  </node>
-
-  <node name="teleop" pkg="hector_quadrotor_teleop" type="quadrotor_teleop" output="screen">
-    <rosparam subst_value="true">
-      control_mode: $(arg control_mode)
-      x_axis: 4
-      y_axis: 3
-      z_axis: 2
-      thrust_axis: 2
-      yaw_axis: 1
-      slow_button: 6
-      go_button: 4
-      stop_button: 2
-    </rosparam>
-  </node>
-</launch>
-```
-
----
-
-### 3. Install `key_teleop` and Dependencies
+Inside your ROS workspace:
 
 ```bash
 cd ~/catkin_ws/src
-git clone https://github.com/ros-teleop/teleop_tools.git
+catkin_create_pkg keyboard_teleop_bridge rospy geometry_msgs
+mkdir -p keyboard_teleop_bridge/scripts
+```
+
+Then create the bridge script:
+
+```bash
+cd keyboard_teleop_bridge/scripts
+nano cmdvel_bridge.py
+```
+
+Paste the following Python code:
+
+```python
+#!/usr/bin/env python
+import rospy
+from geometry_msgs.msg import Twist, PoseStamped
+
+pub = None
+
+def callback(msg):
+    pose = PoseStamped()
+    pose.header.stamp = rospy.Time.now()
+    pose.header.frame_id = "world"
+    pose.pose.position.x = 0
+    pose.pose.position.y = 0
+    pose.pose.position.z = 2.0  # Constant height
+    pose.pose.orientation.w = 1.0
+    pub.publish(pose)
+
+def main():
+    global pub
+    rospy.init_node('cmdvel_to_pose_bridge')
+    pub = rospy.Publisher('/command/pose', PoseStamped, queue_size=1)
+    rospy.Subscriber('/cmd_vel', Twist, callback)
+    rospy.spin()
+
+if __name__ == '__main__':
+    main()
+```
+
+Make it executable:
+
+```bash
+chmod +x cmdvel_bridge.py
+```
+
+---
+
+## 3️⃣ Build the workspace
+
+```bash
 cd ~/catkin_ws
 catkin_make
 source devel/setup.bash
@@ -81,18 +123,39 @@ source devel/setup.bash
 
 ---
 
-### 4. Launch the Keyboard Teleop
+## 4️⃣ Run everything
 
-Open a **new terminal**, then:
+In **Terminal 1**:
 
 ```bash
-source ~/catkin_ws/devel/setup.bash
-roslaunch hector_quadrotor_teleop keyboard_teleop_quadrotor.launch
+roslaunch hector_quadrotor_demo indoor_slam_gazebo.launch
 ```
 
-If no error appears and the `teleop` node is active, you're ready to fly! 🚀
+In **Terminal 2**:
+
+```bash
+rosrun keyboard_teleop_bridge cmdvel_bridge.py
+```
+
+In **Terminal 3**:
+
+```bash
+rosrun teleop_twist_keyboard teleop_twist_keyboard.py
+```
+
+Use the keyboard (WASD keys) to control the quadrotor!
 
 ---
+
+## ✅ Notes
+
+* The bridge converts `cmd_vel` messages from the keyboard into `PoseStamped` messages that are published to `/command/pose`.
+* You must **make sure** no other node (like `/pose_action`) is publishing to `/command/pose`.
+* You can disable conflicting nodes using:
+
+```bash
+rosnode kill /pose_action
+```
 
 ### 5. Enable Motors - Takeoff Action
 
