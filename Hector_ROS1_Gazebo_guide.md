@@ -100,7 +100,7 @@ Paste the following:
 <launch>
 
   <!-- Load indoor scenario -->
-  <include file="$(find hector_gazebo_worlds)/launch/small_indoor_scenario.launch"/>
+  <include file="$(find hector_gazebo_worlds)/launch/sick_robot_day_2014.world.launch"/>
 
   <!-- Spawn drone with LIDAR and camera -->
   <include file="$(find hector_quadrotor_gazebo)/launch/spawn_quadrotor.launch">
