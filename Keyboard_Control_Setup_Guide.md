@@ -244,8 +244,26 @@ Kill stuck nodes:
 rosnode kill /pose_action
 ```
 
----
+🚫 Pause Gazebo Physics (Freeze the World)
 
+To stop all physics simulation (everything will freeze in place):
+
+```bash
+rosservice call /gazebo/pause_physics
+```
+To continue the simulation after pausing:
+
+```
+rosservice call /gazebo/unpause_physics
+```
+🎥 Record Sensor Data with rosbag
+```
+rosbag record /front_cam/camera/image /raw_imu -O test.bag
+```
+🔁 Replay the Bag File
+```
+rosbag play test.bag --clock
+```
 ## 🥳 That's It!
 
 You now have full control of the simulated Hector Quadrotor using your keyboard.
