@@ -213,6 +213,7 @@ Use the keyboard to move the drone:
 * Use `rqt_graph` to debug connections between nodes
 * Always check `/command/takeoff` was triggered if drone isn't moving
 * Run `rostopic echo /command/twist` to verify messages are being published
+* use 'rosservice call /gazebo/reset_simulation' to reset map
 
 ---
 
