@@ -70,6 +70,34 @@ mkdir -p keyboard_teleop_bridge/scripts
 
 Then create the bridge script:
 
+```
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import rospy
+from geometry_msgs.msg import Twist, PoseStamped
+
+def callback(msg):
+    pose = PoseStamped()
+    pose.header.stamp = rospy.Time.now()
+    pose.header.frame_id = "world"
+
+    pose.pose.position.x = 0.0
+    pose.pose.position.y = 0.0
+    pose.pose.position.z = 1.0 + msg.linear.x * 1.0  # תרגום תנועה קדימה לגובה
+
+    pose.pose.orientation.x = 0.0
+    pose.pose.orientation.y = 0.0
+    pose.pose.orientation.z = 0.0
+    pose.pose.orientation.w = 1.0
+
+    pub.publish(pose)
+
+rospy.init_node('cmdvel_to_pose_bridge')
+pub = rospy.Publisher('/command/pose', PoseStamped, queue_size=10)
+rospy.Subscriber('/cmd_vel', Twist, callback)
+rospy.spin()
+```
+
 ```bash
 cd keyboard_teleop_bridge/scripts
 nano cmdvel_bridge.py
