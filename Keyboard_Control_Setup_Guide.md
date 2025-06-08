@@ -268,3 +268,38 @@ rosbag play test.bag --clock
 ## 🥳 That's It!
 
 You now have full control of the simulated Hector Quadrotor using your keyboard.
+
+
+OR create a command file:
+```
+nano ~/catkin_ws/src/hector_move/scripts/auto_move.py
+```
+
+```
+#!/usr/bin/env python
+
+import rospy
+from geometry_msgs.msg import Twist
+
+def move():
+    rospy.init_node('hector_auto_move')
+    pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+    rate = rospy.Rate(10)  # 10 Hz
+
+    twist = Twist()
+    twist.linear.x = 0.5
+    twist.angular.z = 0.15
+
+    rospy.loginfo("Publishing motion command...")
+    while not rospy.is_shutdown():
+        pub.publish(twist)
+        rate.sleep()
+
+if __name__ == '__main__':
+    try:
+        move()
+    except rospy.ROSInterruptException:
+        pass
+
+```
+םר 
