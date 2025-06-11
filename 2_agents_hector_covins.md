@@ -15,7 +15,7 @@ Location: `~/catkin_ws/src/hector_quadrotor/hector_quadrotor_demo/launch/`
 
   <!-- Load Gazebo with custom office world -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find gazebo_models_worlds_collection)/worlds/office.world"/>
+    <arg name="world_name" value="$(find gazebo_models_worlds_collection)/worlds/office_cpr.world"/>
     <arg name="use_sim_time" value="true"/>
     <arg name="gui" value="true"/>
     <arg name="paused" value="false"/>
