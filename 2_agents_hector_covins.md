@@ -88,6 +88,12 @@ if __name__ == '__main__':
         pass
 ```
 
+```
+cd ~/catkin_ws
+catkin_make
+source ~/catkin_ws/devel/setup.bash
+```
+
 ### Run for both agents:
 
 ```bash
